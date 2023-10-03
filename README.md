@@ -1,3 +1,3 @@
-# soil_playground
+ # soil_playground
 
-!(outputs/verona3.gif)
+![](outputs/verona3.gif)
