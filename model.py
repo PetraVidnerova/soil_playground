@@ -94,7 +94,7 @@ class Graph():
     
     def do_spread(self, nodes, prob):
         edges = np.isin(self.in_nodes, nodes)
-        rand = np.random.randn(edges.sum()) < prob
+        rand = np.random.rand(edges.sum()) < prob
         candidates = self.out_nodes[edges]
         return candidates[rand]
 

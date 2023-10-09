@@ -23,7 +23,7 @@ def empty(model, nodes):
         model.new_states[informed_nodes] = INFORMED
     
 def informed(model, nodes):
-    flip_coin = np.random.randn(nodes.size) < 0.1
+    flip_coin = np.random.rand(nodes.size) < 0.1
 
     informing_nodes = nodes[flip_coin]
     if informing_nodes.size > 0:
