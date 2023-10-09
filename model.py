@@ -3,7 +3,30 @@ import pandas as pd
 
 import networkx as nx
 
+class History():
+    def __init__(self, model):
+        self.model = model 
+        self.state_history = [] 
+        self.state_numbers = []
 
+
+    def update(self):
+        self.state_history.append(self.model.node_states.copy())
+        state_numbers_dict = {
+            s: (self.model.node_states == s).sum()
+            for s in self.model.states 
+        }
+        self.state_numbers.append(state_numbers_dict)
+
+    def to_df(self, include_node_states=False):
+        df1 = pd.DataFrame(self.state_numbers)
+        df1.columns = self.model.state_strings
+        if not include_node_states:
+            return df1
+        
+        df2 = pd.DataFrame(self.state_history, columns=self.model.G.node_numbers)
+        return pd.concat([df1, df2], axis=1)
+        
 class BaseModel():
 
     def __init__(self, states, state_strings, state_func_dict):
@@ -12,7 +35,7 @@ class BaseModel():
         self.state_func_dict = state_func_dict
         self.G = None
 
-        self.state_history = []
+        self.history = History(self)
         
     def set_graph(self, G):
         self.G = G
@@ -23,7 +46,7 @@ class BaseModel():
 
         self.time_in_state = np.ones(self.G.n_nodes)
 
-        self.state_history.append(self.node_states.copy())
+        self.history.update()
         
     def iterate(self):
         self.new_states[:] = self.node_states
@@ -36,7 +59,7 @@ class BaseModel():
         self.node_states[:] = self.new_states
         self.time_in_state[same_state] += 1
         self.time_in_state[same_state == False] = 1
-        self.save_states()
+        self.history.update()
 
     def inform(self):
         for state in self.states:
@@ -44,12 +67,9 @@ class BaseModel():
             print(f"{self.state_strings[state]} ..... {num}")
         print()
 
-    def save_states(self):
-        self.state_history.append(self.node_states.copy())
 
-    def states_to_df(self):
-        df = pd.DataFrame(self.state_history, columns=self.G.node_numbers)
-        return df
+    def history_to_df(self):
+        return self.history.to_df()
     
 class Graph():
     
