@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 
 import networkx as nx
+from scipy.sparse import csr_matrix, lil_matrix
 
 class History():
     def __init__(self, model):
@@ -95,14 +96,18 @@ class Graph():
 
 
         id_dict = {self.node_numbers[i]: i  for i in range(self.n_nodes)}
+
+        tmp_matrix = lil_matrix((self.n_nodes, self.n_nodes), dtype="int")
         
         with open(edges_file, "r") as f:
             for i, line in enumerate(f):
                 a, b = map(int, line.split())
                 self.in_nodes[i] = id_dict[a]
                 self.out_nodes[i] = id_dict[b]
-                
+                tmp_matrix[id_dict[a], id_dict[b]] += 1 
 
+        self.matrix = csr_matrix(tmp_matrix)
+                
                 
     def get_dest_of_nodes(self, nodes):
         edges = np.isin(self.in_nodes, nodes)
@@ -111,7 +116,13 @@ class Graph():
     def get_source_of_nodes(self, nodes):
         edges = np.isin(self.out_nodes, nodes)
         return self.in_nodes(edges)
+
+    def get_in_nodes_by_node(self, nodes):
+        nodes = np.array(nodes)
     
+        edges = self.out_nodes.reshape(1,-1) == nodes.reshape(-1, 1)
+        return edges
+        
     def do_spread(self, nodes, prob):
         edges = np.isin(self.in_nodes, nodes)
         rand = np.random.rand(edges.sum()) < prob
