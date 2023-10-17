@@ -53,7 +53,7 @@ class BaseModel():
 
         for state, func in self.state_func_dict.items():
             nodes = self.G.nodes[self.node_states == state]
-            func(self, nodes)
+            func(nodes)
             
         same_state = self.new_states == self.node_states
         self.node_states[:] = self.new_states
